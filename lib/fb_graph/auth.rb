@@ -29,12 +29,19 @@ module FbGraph
     end
 
     def from_cookie(cookie)
+
+      #this creates a cookie
       cookie = FbGraph::Auth::Cookie.parse(self.client, cookie)
+
+      #the cookie expires time is the time as an integer
+      #in the oauth2 api, it does Time.now + expires, creating a time too large
+      #instead, make expires a delta value
+      time_expires = cookie[:expires].to_i - Time.now.to_i
       self.access_token = OAuth2::AccessToken.new(
         self.client,
         cookie[:access_token],
         cookie[:refresh_token],
-        cookie[:expires]
+        time_expires
       )
       self.user = FbGraph::User.new(cookie[:uid], :access_token => self.access_token)
       self
